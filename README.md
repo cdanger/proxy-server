@@ -1,5 +1,5 @@
 # Proxy Server
-Proxy server with caching for certain file types, base on Spring Boot and  https://github.com/webmetrics/browsermob-proxy
+Proxy server with caching for certain file types, base on Spring Boot and LittleProxy https://github.com/adamfisk/LittleProxy
 
 ## Download Root certificate
 http://server_ip:9090/file/root-certificate.cer
