@@ -1,5 +1,6 @@
 package org.lovebing.proxy.controller;
 
+import org.lovebing.proxy.config.ProxyCacheConfig;
 import org.lovebing.proxy.config.ProxyServerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -18,9 +19,17 @@ public class FileController {
 
     @Autowired
     private ProxyServerConfig proxyServerConfig;
+    @Autowired
+    private ProxyCacheConfig proxyCacheConfig;
 
     @GetMapping(value = "/file/download")
     public FileSystemResource download(@Param(value = "path") String path) {
+        if (!path.startsWith(proxyCacheConfig.getCachePath())) {
+            return null;
+        }
+        if (path.indexOf("..") > -1) {
+            return null;
+        }
         File file = new File(path);
         if (file.isDirectory()) {
             return null;

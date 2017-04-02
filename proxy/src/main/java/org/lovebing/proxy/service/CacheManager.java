@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.net.URI;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
  * @author lovebing Created on Apr 2, 2017
@@ -28,7 +27,6 @@ public class CacheManager {
 
     private final Logger logger = LoggerFactory.getLogger(CacheManager.class);
 
-    private final Sync sync = new Sync();
     @Autowired
     private MongoOperations mongoOperations;
     @Autowired
@@ -73,23 +71,6 @@ public class CacheManager {
             host = "localhost";
         }
         return "http://" + host + ":" + httpServiceConfig.getPort() + "/file/download/?path=" + path;
-    }
-
-    private static class Sync extends AbstractQueuedSynchronizer {
-        boolean isOpened() {
-            return getState() == 1;
-        }
-
-        @Override
-        protected int tryAcquireShared(int ignore) {
-            return isOpened() ? 1 : -1;
-        }
-
-        @Override
-        protected boolean tryReleaseShared(int status) {
-            setState(status);
-            return status == 1;
-        }
     }
 
 }
