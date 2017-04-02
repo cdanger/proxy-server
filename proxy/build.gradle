@@ -1,0 +1,10 @@
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    compile project(':common')
+}
+
+springBoot {
+    mainClass = 'org.lovebing.proxy.ProxyServerApplication'
+}
+

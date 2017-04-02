@@ -1,0 +1,28 @@
+logging:
+  file: logs/proxy_server.log
+spring:
+  data:
+    mongodb:
+      uri: mongodb://mongodb-1:27017/proxy
+server:
+  port: 9090
+proxyServer:
+  port: 9080
+  rootCertificatePath: /tmp/certificate.cer
+  privateKeyPath: /tmp/private-key.pem
+  rootCertificateAndKeyPath: /tmp/keystore.p12
+  passwordForPrivateKey: 1q2w3e4r
+  keyStoreType: PKCS12
+  privateKeyAlias: ProxyServerPrivateKey
+proxyCache:
+  cachePath: /data/proxy/cache
+  fileTypes:
+    - .apk
+    - .ipa
+    - .zip
+    - .gz
+    - .tar
+    - .rar
+    - .7z
+    - .jar
+    - .exe

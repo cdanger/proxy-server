@@ -1,0 +1,2 @@
+include 'common', 'proxy'
+rootProject.name = 'proxy'
