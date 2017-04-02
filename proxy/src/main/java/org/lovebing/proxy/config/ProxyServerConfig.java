@@ -2,6 +2,7 @@ package org.lovebing.proxy.config;
 
 import net.lightbody.bmp.mitm.CertificateAndKey;
 import net.lightbody.bmp.mitm.CertificateInfo;
+import net.lightbody.bmp.mitm.KeyStoreFileCertificateSource;
 import net.lightbody.bmp.mitm.RootCertificateGenerator;
 import net.lightbody.bmp.mitm.manager.ImpersonatingMitmManager;
 import net.lightbody.bmp.mitm.tools.DefaultSecurityProviderTool;
@@ -86,10 +87,24 @@ public class ProxyServerConfig {
 
     @Bean
     ImpersonatingMitmManager createImpersonatingMitmManager() {
+        File rootCertificateFile = new File(getRootCertificatePath());
+        File rootCertificateAndKeyFile = new File(getRootCertificateAndKeyPath());
+        File privateKeyFile = new File(getPrivateKeyPath());
+        if (rootCertificateAndKeyFile.isFile() && rootCertificateFile.isFile() && privateKeyFile.isFile()) {
+            KeyStoreFileCertificateSource fileCertificateSource = new KeyStoreFileCertificateSource(
+                    getKeyStoreType(),
+                    rootCertificateAndKeyFile,
+                    getPrivateKeyAlias(),
+                    getPasswordForPrivateKey());
+            return ImpersonatingMitmManager.builder()
+                    .rootCertificateSource(fileCertificateSource)
+                    .build();
+        }
+
         RootCertificateGenerator rootCertificateGenerator = RootCertificateGenerator.builder().build();
-        rootCertificateGenerator.saveRootCertificateAsPemFile(new File(getRootCertificatePath()));
-        rootCertificateGenerator.savePrivateKeyAsPemFile(new File(getPrivateKeyPath()), getPasswordForPrivateKey());
-        rootCertificateGenerator.saveRootCertificateAndKey(getKeyStoreType(), new File(getRootCertificateAndKeyPath()), getPrivateKeyAlias(), getPasswordForPrivateKey());
+        rootCertificateGenerator.saveRootCertificateAsPemFile(rootCertificateFile);
+        rootCertificateGenerator.savePrivateKeyAsPemFile(privateKeyFile, getPasswordForPrivateKey());
+        rootCertificateGenerator.saveRootCertificateAndKey(getKeyStoreType(), rootCertificateAndKeyFile, getPrivateKeyAlias(), getPasswordForPrivateKey());
 
         return ImpersonatingMitmManager.builder()
                 .rootCertificateSource(rootCertificateGenerator)
