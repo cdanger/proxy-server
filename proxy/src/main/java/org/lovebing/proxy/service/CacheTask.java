@@ -63,13 +63,11 @@ public class CacheTask {
             URL url = new URL(originUrl);
 
             String urlId = UrlUtil.removeQueryString(originUrl);
-            String file = url.getPath();
-            int lastDotIndex = file.lastIndexOf(".");
-            if (lastDotIndex == -1) {
+            String extName = UrlUtil.getExtName(url.getPath());
+
+            if (extName.length() == 0) {
                 return;
             }
-            String extName = file.substring(lastDotIndex);
-
             boolean valid = false;
             for (String type : proxyCacheConfig.getFileTypes()) {
                 if (type.equals(extName)) {
@@ -124,26 +122,33 @@ public class CacheTask {
         URL url = new URL(fileCacheTask.getId());
 
         String path = proxyCacheConfig.getCachePath() + "/" + url.getHost() + url.getPath();
-        File tempFile = new File(path);
+        String[] pathInfo = path.split("/");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < pathInfo.length - 1; i++) {
+            stringBuilder.append(pathInfo[i]);
+        }
+        File tempFile = new File(stringBuilder.toString());
         if (!tempFile.exists()) {
             tempFile.mkdirs();
         }
 
-        String savePath = path + "/cache";
-
         InputStream inputStream = httpClient.executeWithStream(fileCacheTask.getId());
-        FileOutputStream outputStream = new FileOutputStream(savePath);
+        FileOutputStream outputStream = new FileOutputStream(path);
         byte[] buffer = new byte[1024];
         int length;
-        while ((length = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, length);
+        try {
+            while ((length = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, length);
+            }
         }
-        outputStream.close();
-        inputStream.close();
+        finally {
+            outputStream.close();
+            inputStream.close();
+        }
 
         UrlIndex urlIndex = new UrlIndex();
         urlIndex.setId(fileCacheTask.getId());
-        urlIndex.setSavePath(savePath);
+        urlIndex.setSavePath(path);
         urlIndex.setCreateTime(Instant.now());
         mongoOperations.save(urlIndex);
 

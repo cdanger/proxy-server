@@ -21,7 +21,7 @@ public class HttpClient {
     private static final String USER_AGENT_PC = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36";
 
     private final ProgressListener progressListener = (long bytesRead, long contentLength, boolean done) -> {
-        double percent = bytesRead / contentLength * 100;
+        double percent = bytesRead * 100 / contentLength;
         logger.info("percent={}", percent);
     };
 
@@ -35,7 +35,9 @@ public class HttpClient {
 
     public InputStream executeWithStream (String url) throws IOException {
         Request request = new Request.Builder().url(url).get().build();
-        return getOkHttpClient().newCall(request).execute().body().byteStream();
+        Response response = getOkHttpClient().newCall(request).execute();
+        InputStream inputStream = response.body().byteStream();
+        return inputStream;
     }
 
     private void createOkHttpClient() {

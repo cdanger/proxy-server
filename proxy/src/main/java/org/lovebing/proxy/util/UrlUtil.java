@@ -12,6 +12,14 @@ import java.net.URI;
  */
 public class UrlUtil {
 
+    public static String getExtName(String url) {
+        int lastDotIndex = url.lastIndexOf(".");
+        if (lastDotIndex == -1) {
+            return "";
+        }
+        return url.substring(lastDotIndex);
+    }
+
     public static String removeQueryString(String url) {
         try {
             URI uri = new URI(url);
