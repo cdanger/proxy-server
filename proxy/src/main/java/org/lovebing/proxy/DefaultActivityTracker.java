@@ -51,15 +51,6 @@ public class DefaultActivityTracker implements ActivityTracker {
 
     @Override
     public void requestReceivedFromClient(FlowContext flowContext, HttpRequest httpRequest) {
-        logger.info("requestReceivedFromClient|host={}|url={}", httpRequest.headers().get(HttpHeaders.Names.HOST), httpRequest.getUri());
-        if (httpRequest.getMethod().equals(HttpMethod.GET)) {
-            new Thread() {
-                @Override
-                public void run() {
-                    cacheTask.addTask(UrlUtil.getAbsoluteUrl(httpRequest, null));
-                }
-            }.start();
-        }
     }
 
     @Override

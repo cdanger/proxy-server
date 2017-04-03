@@ -51,6 +51,7 @@ public class ProxyServerApplication {
                 .bootstrap()
                 .withPort(proxyServerConfig.getPort())
                 .withManInTheMiddle(mitmManager)
+
                 .withAllowLocalOnly(false)
                 .plusActivityTracker(new DefaultActivityTracker(cacheTask))
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
@@ -58,8 +59,19 @@ public class ProxyServerApplication {
                     public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                         return new AnswerRequestFilter(originalRequest, ctx, cacheManager);
                     }
+                    @Override
+                    public int getMaximumResponseBufferSizeInBytes() {
+                        return 1 * 1024 * 1024;
+                    }
                 })
                 .start();
+
+        new Thread() {
+            @Override
+            public void run() {
+                cacheTask.start();
+            }
+        }.start();
     }
 
     @Bean

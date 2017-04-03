@@ -5,7 +5,6 @@ import org.lovebing.proxy.common.component.HttpClient;
 import org.lovebing.proxy.common.domain.mongo.FileCacheTask;
 import org.lovebing.proxy.common.domain.mongo.UrlIndex;
 import org.lovebing.proxy.config.ProxyCacheConfig;
-import org.lovebing.proxy.util.UrlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,59 +44,30 @@ public class CacheTask {
             return;
         }
         running = true;
-
-        while (true) {
-            if (!processTask()) {
-                break;
-            }
-        }
-        running = false;
-    }
-
-    public void addTask(String originUrl) {
-        if (proxyCacheConfig.getFileTypes() == null) {
-            return;
-        }
         try {
-            logger.info("originUrl={}", originUrl);
-            URL url = new URL(originUrl);
+            while (true) {
+                if (!running) {
+                    break;
+                }
+                if (processTask()) {
+                    continue;
+                }
+                try {
 
-            String urlId = UrlUtil.removeQueryString(originUrl);
-            String extName = UrlUtil.getExtName(url.getPath());
-
-            if (extName.length() == 0) {
-                return;
-            }
-            boolean valid = false;
-            for (String type : proxyCacheConfig.getFileTypes()) {
-                if (type.equals(extName)) {
-                    valid = true;
+                    Thread.sleep(10000);
+                }
+                finally {
                     break;
                 }
             }
-            if (!valid) {
-                return;
-            }
-            Query query = Query.query(Criteria.where("_id").is(urlId));
-            FileCacheTask fileCacheTask = mongoOperations.findOne(query, FileCacheTask.class);
-            if (fileCacheTask != null) {
-                return;
-            }
-            fileCacheTask = new FileCacheTask();
-            fileCacheTask.setId(urlId);
-            fileCacheTask.setCreateTime(Instant.now());
-            fileCacheTask.setDone(false);
-            mongoOperations.save(fileCacheTask);
-            if (!running) {
-                start();
-            }
         }
         catch (Exception e) {
-            logger.error("addTask|msg={}", e.getMessage());
+            e.printStackTrace();
         }
-
+        finally {
+            running = false;
+        }
     }
-
 
     public void stop() {
         running = false;
@@ -125,13 +95,14 @@ public class CacheTask {
         String[] pathInfo = path.split("/");
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < pathInfo.length - 1; i++) {
-            stringBuilder.append(pathInfo[i]);
+            stringBuilder.append("/").append(pathInfo[i]);
         }
         File tempFile = new File(stringBuilder.toString());
         if (!tempFile.exists()) {
-            tempFile.mkdirs();
+            if (!tempFile.mkdirs()) {
+                logger.error("创建目录失败|path={}", stringBuilder.toString());
+            }
         }
-
         InputStream inputStream = httpClient.executeWithStream(fileCacheTask.getId());
         FileOutputStream outputStream = new FileOutputStream(path);
         byte[] buffer = new byte[1024];
