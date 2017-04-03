@@ -47,11 +47,9 @@ public class ProxyServerApplication {
     @PostConstruct
     private void init() {
 
-        DefaultHttpProxyServer
+        HttpProxyServerBootstrap httpProxyServerBootstrap =DefaultHttpProxyServer
                 .bootstrap()
                 .withPort(proxyServerConfig.getPort())
-                .withManInTheMiddle(mitmManager)
-
                 .withAllowLocalOnly(false)
                 .plusActivityTracker(new DefaultActivityTracker(cacheTask))
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
@@ -63,8 +61,11 @@ public class ProxyServerApplication {
                     public int getMaximumResponseBufferSizeInBytes() {
                         return 1 * 1024 * 1024;
                     }
-                })
-                .start();
+                });
+        if (proxyServerConfig.isSSLEnabled()) {
+            httpProxyServerBootstrap.withManInTheMiddle(mitmManager);
+        }
+        httpProxyServerBootstrap.start();
 
         new Thread() {
             @Override

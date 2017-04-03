@@ -14,6 +14,9 @@ public class FileCacheTask {
 
     @Id
     private String id;
+    private String requestUrl;
+    private String cookie;
+    private String userAgent;
     private Boolean done;
     private Instant createTime;
     private Instant doneTime;
@@ -39,6 +42,18 @@ public class FileCacheTask {
         this.httpStatusCode = httpStatusCode;
     }
 
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
+    }
+
+    public void setRequestUrl(String requestUrl) {
+        this.requestUrl = requestUrl;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
     public Instant getCreateTime() {
         return createTime;
     }
@@ -57,5 +72,17 @@ public class FileCacheTask {
 
     public Integer getHttpStatusCode() {
         return httpStatusCode;
+    }
+
+    public String getCookie() {
+        return cookie;
+    }
+
+    public String getRequestUrl() {
+        return requestUrl;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
     }
 }

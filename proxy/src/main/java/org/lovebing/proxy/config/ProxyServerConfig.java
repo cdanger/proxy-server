@@ -28,6 +28,7 @@ public class ProxyServerConfig {
     private String passwordForPrivateKey;
     private String keyStoreType;
     private String privateKeyAlias;
+    private boolean SSLEnabled;
 
     public void setPort(Integer port) {
         this.port = port;
@@ -57,6 +58,10 @@ public class ProxyServerConfig {
         this.privateKeyAlias = privateKeyAlias;
     }
 
+    public void setSSLEnabled(boolean SSLEnabled) {
+        this.SSLEnabled = SSLEnabled;
+    }
+
     public Integer getPort() {
         return port;
     }
@@ -83,6 +88,10 @@ public class ProxyServerConfig {
 
     public String getPrivateKeyAlias() {
         return privateKeyAlias;
+    }
+
+    public boolean isSSLEnabled() {
+        return SSLEnabled;
     }
 
     @Bean

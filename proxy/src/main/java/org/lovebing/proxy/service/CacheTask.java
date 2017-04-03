@@ -113,7 +113,7 @@ public class CacheTask {
         }
         InputStream inputStream;
         try {
-            inputStream = httpClient.executeWithStream(fileCacheTask.getId());
+            inputStream = httpClient.executeWithStream(fileCacheTask.getRequestUrl());
         }
         catch (HttpException e) {
             logger.error("msg={}|code={}", e.getMessage(), e.getCode());

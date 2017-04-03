@@ -71,6 +71,9 @@ public class CacheManager {
             }
             fileCacheTask = new FileCacheTask();
             fileCacheTask.setId(urlId);
+            fileCacheTask.setRequestUrl(originUrl);
+            fileCacheTask.setUserAgent(originalRequest.headers().get(HttpHeaders.Names.USER_AGENT));
+            fileCacheTask.setCookie(originalRequest.headers().get(HttpHeaders.Names.COOKIE));
             fileCacheTask.setCreateTime(Instant.now());
             fileCacheTask.setDone(false);
             mongoOperations.save(fileCacheTask);
