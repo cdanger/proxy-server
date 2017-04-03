@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.lovebing.proxy.common.component.HttpClient;
 import org.lovebing.proxy.common.domain.mongo.FileCacheTask;
 import org.lovebing.proxy.common.domain.mongo.UrlIndex;
+import org.lovebing.proxy.common.exception.HttpException;
 import org.lovebing.proxy.config.ProxyCacheConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,30 +42,37 @@ public class CacheTask {
 
     public void start() {
         if (running) {
+            logger.warn("task is already running");
             return;
         }
         running = true;
         try {
             while (true) {
                 if (!running) {
+                    logger.warn("task is stop, break");
                     break;
                 }
+                logger.warn("processTask");
                 if (processTask()) {
+                    logger.warn("next");
                     continue;
                 }
                 try {
-
+                    logger.warn("no records, sleep 10s");
                     Thread.sleep(10000);
                 }
-                finally {
+                catch (Exception e){
+                    logger.warn("task break");
                     break;
                 }
             }
         }
         catch (Exception e) {
+            logger.warn("Exception|msg={}", e.getMessage());
             e.printStackTrace();
         }
         finally {
+            logger.warn("task stop");
             running = false;
         }
     }
@@ -103,7 +111,18 @@ public class CacheTask {
                 logger.error("创建目录失败|path={}", stringBuilder.toString());
             }
         }
-        InputStream inputStream = httpClient.executeWithStream(fileCacheTask.getId());
+        InputStream inputStream;
+        try {
+            inputStream = httpClient.executeWithStream(fileCacheTask.getId());
+        }
+        catch (HttpException e) {
+            logger.error("msg={}|code={}", e.getMessage(), e.getCode());
+            fileCacheTask.setDone(true);
+            fileCacheTask.setDoneTime(Instant.now());
+            fileCacheTask.setHttpStatusCode(e.getCode());
+            mongoOperations.save(fileCacheTask);
+            return;
+        }
         FileOutputStream outputStream = new FileOutputStream(path);
         byte[] buffer = new byte[1024];
         int length;

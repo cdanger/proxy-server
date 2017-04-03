@@ -17,6 +17,7 @@ public class FileCacheTask {
     private Boolean done;
     private Instant createTime;
     private Instant doneTime;
+    private Integer httpStatusCode;
 
     public void setId(String id) {
         this.id = id;
@@ -34,6 +35,10 @@ public class FileCacheTask {
         this.doneTime = doneTime;
     }
 
+    public void setHttpStatusCode(Integer httpStatusCode) {
+        this.httpStatusCode = httpStatusCode;
+    }
+
     public Instant getCreateTime() {
         return createTime;
     }
@@ -48,5 +53,9 @@ public class FileCacheTask {
 
     public Instant getDoneTime() {
         return doneTime;
+    }
+
+    public Integer getHttpStatusCode() {
+        return httpStatusCode;
     }
 }

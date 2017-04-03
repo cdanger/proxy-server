@@ -2,11 +2,15 @@ package org.lovebing.proxy.common.component;
 
 import okhttp3.*;
 import okio.*;
+import org.lovebing.proxy.common.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * @author lovebing Created on Apr 1, 2017
@@ -33,31 +37,72 @@ public class HttpClient {
         return okHttpClient;
     }
 
-    public InputStream executeWithStream (String url) throws IOException {
+    public InputStream executeWithStream (String url) throws IOException, HttpException {
         Request request = new Request.Builder().url(url).get().build();
         Response response = getOkHttpClient().newCall(request).execute();
+        if (!response.isSuccessful()) {
+            throw new HttpException(response.message(), response.code());
+        }
         InputStream inputStream = response.body().byteStream();
         return inputStream;
     }
 
     private void createOkHttpClient() {
+        X509TrustManager trustManager = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        };
+
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.addInterceptor(chain -> {
-            Request request = chain.request().newBuilder()
-                    .removeHeader("User-Agent")
-                    .addHeader("User-Agent", USER_AGENT_PC)
-                    .addHeader("Connection", "keep-alive")
-                    .build();
-            return chain.proceed(request);
+            try {
+                Request request = chain.request().newBuilder()
+                        .removeHeader("User-Agent")
+                        .addHeader("User-Agent", USER_AGENT_PC)
+                        .addHeader("Connection", "keep-alive")
+                        .build();
+                return chain.proceed(request);
+            }
+            catch (Exception e) {
+                return chain.proceed(chain.request());
+            }
         });
         builder.followRedirects(true);
         builder.addNetworkInterceptor(chain -> {
             Response originalResponse = chain.proceed(chain.request());
-            return originalResponse
-                    .newBuilder()
-                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
-                    .build();
+            try {
+                return originalResponse
+                        .newBuilder()
+                        .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                        .build();
+            }
+            catch (Exception e) {
+                return originalResponse;
+            }
         });
+        try {
+
+            SSLContext sslContext;
+            sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null,new X509TrustManager[]{trustManager}, null);
+            builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        builder.hostnameVerifier((String s, SSLSession sslSession) -> true);
         okHttpClient = builder.build();
     }
 

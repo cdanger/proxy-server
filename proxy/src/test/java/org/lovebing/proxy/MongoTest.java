@@ -44,6 +44,13 @@ public class MongoTest {
 
     @Test
     public void task() {
+        cacheTask.stop();
         cacheTask.start();
+        try {
+            Thread.sleep(60 * 1000);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
