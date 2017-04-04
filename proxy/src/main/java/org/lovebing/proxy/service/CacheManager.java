@@ -8,6 +8,7 @@ import org.lovebing.proxy.common.domain.mongo.FileCacheTask;
 import org.lovebing.proxy.common.domain.mongo.UrlIndex;
 import org.lovebing.proxy.config.ProxyCacheConfig;
 import org.lovebing.proxy.util.HostUtil;
+import org.lovebing.proxy.util.HttpHeaderUtil;
 import org.lovebing.proxy.util.UrlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,11 +110,27 @@ public class CacheManager {
             return null;
         }
         try {
+            long[] range = HttpHeaderUtil.getRange(originalRequest.headers().get(HttpHeaders.Names.RANGE));
             InputStream inputStream = new FileInputStream(file);
             ByteBuf content = Unpooled.buffer();
-            content.writeBytes(inputStream, (int) file.length());
-            HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-            HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_LENGTH, file.length());
+
+            HttpResponse response;
+            int len = (int) file.length();
+            if (range[0] > 0 || range[1] > 0) {
+                if (range[1] == 0) {
+                    range[1] = len - 1;
+                }
+                content.writeByte((int) range[0]);
+                content.writeBytes(inputStream, (int) range[1]);
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT, content);
+                response.headers().set(HttpHeaders.Names.CONTENT_RANGE, HttpHeaderUtil.responseRangeValue(range, file.length()));
+                HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_LENGTH, range[1] - range[0]);
+            }
+            else {
+                content.writeBytes(inputStream, len);
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
+                HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_LENGTH, file.length());
+            }
             return response;
         }
         catch (Exception e) {

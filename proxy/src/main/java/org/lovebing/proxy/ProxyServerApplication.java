@@ -59,7 +59,7 @@ public class ProxyServerApplication {
                     }
                     @Override
                     public int getMaximumResponseBufferSizeInBytes() {
-                        return 1 * 1024 * 1024;
+                        return proxyServerConfig.getMaximumResponseBufferSize();
                     }
                 });
         if (proxyServerConfig.isSSLEnabled()) {

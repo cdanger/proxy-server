@@ -1,7 +1,7 @@
 logging:
   file: logs/proxy_server.log
   level:
-    root: INFO
+    root: DEBUG
 spring:
   data:
     mongodb:
@@ -9,6 +9,7 @@ spring:
 server:
   port: 9090
 proxyServer:
+  maximumResponseBufferSize: 1073741824
   SSLEnabled: true
   port: 9080
   rootCertificatePath: /data/proxy/file/certificate.cer

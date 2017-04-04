@@ -29,6 +29,7 @@ public class ProxyServerConfig {
     private String keyStoreType;
     private String privateKeyAlias;
     private boolean SSLEnabled;
+    private Integer maximumResponseBufferSize;
 
     public void setPort(Integer port) {
         this.port = port;
@@ -62,6 +63,10 @@ public class ProxyServerConfig {
         this.SSLEnabled = SSLEnabled;
     }
 
+    public void setMaximumResponseBufferSize(Integer maximumResponseBufferSize) {
+        this.maximumResponseBufferSize = maximumResponseBufferSize;
+    }
+
     public Integer getPort() {
         return port;
     }
@@ -92,6 +97,10 @@ public class ProxyServerConfig {
 
     public boolean isSSLEnabled() {
         return SSLEnabled;
+    }
+
+    public Integer getMaximumResponseBufferSize() {
+        return maximumResponseBufferSize;
     }
 
     @Bean
