@@ -37,4 +37,16 @@ public class AnswerRequestFilter extends HttpFiltersAdapter {
         }
         return response;
     }
+
+    @Override
+    public void proxyToServerConnectionSucceeded(ChannelHandlerContext serverCtx) {
+        ChannelPipeline pipeline = serverCtx.pipeline();
+        if (pipeline.get("inflater") != null) {
+            pipeline.remove("inflater");
+        }
+        if (pipeline.get("aggregator") != null) {
+            pipeline.remove("aggregator");
+        }
+        super.proxyToServerConnectionSucceeded(serverCtx);
+    }
 }
