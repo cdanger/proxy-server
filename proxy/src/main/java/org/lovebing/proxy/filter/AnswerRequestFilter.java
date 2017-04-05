@@ -24,11 +24,16 @@ public class AnswerRequestFilter extends HttpFiltersAdapter {
         super(originalRequest, ctx);
         ctx.pipeline();
         this.cacheManager = cacheManager;
+        ChannelPipeline pipeline = ctx.pipeline();
+        if (pipeline.get("chunkedWriter") == null) {
+            pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+        }
     }
 
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
-        if (!originalRequest.getMethod().equals(HttpMethod.GET)) {
+        logger.info("clientToProxyRequest|method={}|url={}", originalRequest.getMethod(), originalRequest.getUri());
+        if (!originalRequest.getMethod().equals(HttpMethod.GET) && !originalRequest.getMethod().equals(HttpMethod.HEAD)) {
             return null;
         }
         HttpResponse response = cacheManager.createResponse(originalRequest, ctx);
@@ -36,6 +41,12 @@ public class AnswerRequestFilter extends HttpFiltersAdapter {
             cacheManager.createCacheTaskIfNecessary(originalRequest, ctx);
         }
         return response;
+    }
+
+    @Override
+    public HttpResponse proxyToServerRequest(HttpObject httpObject) {
+        logger.debug("proxyToServerRequest|method={}|url={}", originalRequest.getMethod(), originalRequest.getUri());
+        return null;
     }
 
     @Override

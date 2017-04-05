@@ -2,6 +2,7 @@ package org.lovebing.proxy;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import net.lightbody.bmp.mitm.RootCertificateGenerator;
 import net.lightbody.bmp.mitm.manager.ImpersonatingMitmManager;
 import org.littleshoot.proxy.*;
@@ -47,7 +48,7 @@ public class ProxyServerApplication {
     @PostConstruct
     private void init() {
 
-        HttpProxyServerBootstrap httpProxyServerBootstrap =DefaultHttpProxyServer
+        HttpProxyServerBootstrap httpProxyServerBootstrap = DefaultHttpProxyServer
                 .bootstrap()
                 .withPort(proxyServerConfig.getPort())
                 .withAllowLocalOnly(false)
@@ -70,7 +71,7 @@ public class ProxyServerApplication {
         new Thread() {
             @Override
             public void run() {
-                cacheTask.start();
+               // cacheTask.start();
             }
         }.start();
     }

@@ -110,6 +110,7 @@ public class CacheManager {
             return null;
         }
         try {
+            logger.info("createResponse cache|url={}", originUrl);
             long[] range = HttpHeaderUtil.getRange(originalRequest.headers().get(HttpHeaders.Names.RANGE));
             InputStream inputStream = new FileInputStream(file);
             ByteBuf content = Unpooled.buffer();
@@ -117,18 +118,30 @@ public class CacheManager {
             HttpResponse response;
             int len = (int) file.length();
             if (range[0] > 0 || range[1] > 0) {
+                logger.info("createResponse 206");
                 if (range[1] == 0) {
                     range[1] = len - 1;
                 }
-                content.writeByte((int) range[0]);
-                content.writeBytes(inputStream, (int) range[1]);
-                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT, content);
+                if (originalRequest.getMethod().equals(HttpMethod.HEAD)) {
+                    response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT);
+                }
+                else {
+                    response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT, content);
+                    content.writeByte((int) range[0]);
+                    content.writeBytes(inputStream, (int) range[1]);
+                }
                 response.headers().set(HttpHeaders.Names.CONTENT_RANGE, HttpHeaderUtil.responseRangeValue(range, file.length()));
                 HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_LENGTH, range[1] - range[0]);
             }
             else {
-                content.writeBytes(inputStream, len);
-                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
+                logger.info("createResponse 200");
+                if (originalRequest.getMethod().equals(HttpMethod.HEAD)) {
+                    response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                }
+                else {
+                    content.writeBytes(inputStream, len);
+                    response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
+                }
                 HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_LENGTH, file.length());
             }
             return response;

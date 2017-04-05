@@ -75,11 +75,11 @@ public class DefaultActivityTracker implements ActivityTracker {
 
     @Override
     public void bytesSentToClient(FlowContext flowContext, int numberOfBytes) {
-
+        logger.debug("bytesSentToClient|numberOfBytes={}", numberOfBytes);
     }
 
     @Override
     public void responseSentToClient(FlowContext flowContext, HttpResponse httpResponse) {
-
+        logger.debug("responseSentToClient|httpResponse={}", httpResponse.getStatus());
     }
 }
